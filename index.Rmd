@@ -1,0 +1,68 @@
+---
+title: "India: A Journey Through Iconic Places"
+author: ""
+date: "September 21, 2026"
+output:
+  html_document:
+    self_contained: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(leaflet)
+```
+
+This interactive map highlights a small collection of remarkable places across
+India. Select a marker to learn more, use the layer control to switch the
+basemap, and zoom in to explore.
+
+```{r map}
+places <- data.frame(
+  name = c("Taj Mahal", "Gateway of India", "Hawa Mahal", "Mysore Palace",
+           "Victoria Memorial", "Meenakshi Temple", "Golden Temple"),
+  city = c("Agra", "Mumbai", "Jaipur", "Mysuru", "Kolkata", "Madurai", "Amritsar"),
+  lat = c(27.1751, 18.9220, 26.9239, 12.3052, 22.5448, 9.9195, 31.6200),
+  lng = c(78.0421, 72.8347, 75.8267, 76.6552, 88.3426, 78.1193, 74.8765),
+  type = c("Monument", "Monument", "Palace", "Palace", "Museum", "Temple", "Temple"),
+  fact = c(
+    "A white-marble mausoleum and UNESCO World Heritage Site.",
+    "An Indo-Saracenic arch overlooking Mumbai Harbour.",
+    "Jaipur's celebrated Palace of Winds, completed in 1799.",
+    "The illuminated royal residence of the Wadiyar dynasty.",
+    "A marble museum dedicated to Queen Victoria.",
+    "A historic temple complex known for its colourful gopurams.",
+    "The spiritual centre of Sikhism, surrounded by the Amrit Sarovar."
+  )
+)
+
+pal <- colorFactor(
+  palette = c("#e85d75", "#f4a261", "#2a9d8f", "#457b9d"),
+  domain = places$type
+)
+
+leaflet(places) |>
+  addProviderTiles(providers$CartoDB.Positron, group = "Light") |>
+  addProviderTiles(providers$OpenStreetMap.Mapnik, group = "Street") |>
+  addCircleMarkers(
+    lng = ~lng, lat = ~lat,
+    radius = 8, color = "white", weight = 2,
+    fillColor = ~pal(type), fillOpacity = 0.9,
+    label = ~name,
+    popup = ~paste0(
+      "<div style='min-width:210px'>",
+      "<h3 style='margin:0 0 5px;color:#12355b'>", name, "</h3>",
+      "<b>", city, "</b> · ", type,
+      "<p style='margin-bottom:0'>", fact, "</p></div>"
+    )
+  ) |>
+  addLegend("bottomright", pal = pal, values = ~type,
+            title = "Place type", opacity = 0.9) |>
+  addLayersControl(
+    baseGroups = c("Light", "Street"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) |>
+  fitBounds(lng1 = 68, lat1 = 7, lng2 = 97, lat2 = 36)
+```
+
+*Created September 21, 2026 with R Markdown and Leaflet.*

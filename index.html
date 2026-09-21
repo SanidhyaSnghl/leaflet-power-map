@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive Leaflet map of iconic places across India, created with R Markdown.">
+  <title>India: A Journey Through Iconic Places</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh1zFJbKpBSJi1rUh6MQTFqO5fM=" crossorigin="">
+  <style>
+    :root { --navy:#12355b; --ink:#19324a; --cream:#fffaf1; --gold:#f4a261; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; min-height:100%; color:var(--ink); font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--cream); }
+    header { padding:48px 24px 72px; text-align:center; color:white; background:linear-gradient(135deg, #12355b 0%, #246a73 100%); }
+    header p { max-width:680px; margin:12px auto 0; line-height:1.6; color:#e6f4f1; }
+    h1 { margin:0; font-family:Georgia, serif; font-size:clamp(2.2rem, 6vw, 4.5rem); font-weight:700; letter-spacing:-.04em; }
+    .date { display:inline-block; margin-top:22px; padding:8px 14px; border:1px solid rgba(255,255,255,.35); border-radius:999px; font-size:.92rem; }
+    main { width:min(1120px, calc(100% - 32px)); margin:-42px auto 48px; }
+    .map-card { overflow:hidden; background:white; border-radius:22px; box-shadow:0 18px 50px rgba(18,53,91,.2); }
+    #map { width:100%; height:min(68vh, 650px); min-height:480px; }
+    .caption { display:flex; gap:24px; align-items:center; justify-content:space-between; padding:22px 26px; }
+    .caption h2 { margin:0 0 5px; color:var(--navy); font-family:Georgia, serif; font-size:1.35rem; }
+    .caption p { margin:0; color:#587084; line-height:1.45; }
+    .tip { flex:0 0 auto; padding:10px 14px; border-radius:10px; background:#fff1dc; color:#7a4708; font-size:.9rem; }
+    footer { padding:0 24px 35px; text-align:center; color:#687b8b; font-size:.9rem; }
+    .leaflet-popup-content h3 { font-family:Georgia, serif; }
+    .legend { padding:9px 11px; border-radius:10px; background:rgba(255,255,255,.95); box-shadow:0 2px 12px rgba(0,0,0,.15); line-height:20px; color:#26445c; }
+    .legend strong { display:block; margin-bottom:4px; }
+    .legend i { width:12px; height:12px; float:left; margin:4px 7px 0 0; border-radius:50%; border:1px solid white; box-shadow:0 0 0 1px rgba(0,0,0,.12); }
+    @media (max-width:650px) { header { padding-top:34px; } main { width:calc(100% - 20px); } #map { min-height:480px; } .caption { align-items:flex-start; flex-direction:column; gap:14px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>India, Mapped</h1>
+    <p>A journey through seven iconic monuments, palaces, museums, and temples. Select any marker to discover the story behind the place.</p>
+    <span class="date">Created September 21, 2026</span>
+  </header>
+  <main>
+    <section class="map-card" aria-label="Interactive map of iconic places in India">
+      <div id="map"></div>
+      <div class="caption">
+        <div><h2>Seven places, one remarkable journey</h2><p>Pan, zoom, open markers, and switch between light and street basemaps.</p></div>
+        <div class="tip">Tip: select a marker for details</div>
+      </div>
+    </section>
+  </main>
+  <footer>Created with R Markdown and Leaflet · September 21, 2026</footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const map = L.map('map', { scrollWheelZoom: false }).setView([22.8, 79.3], 5);
+    const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(map);
+    const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' });
+    const places = [
+      ['Taj Mahal','Agra','Monument',27.1751,78.0421,'A white-marble mausoleum and UNESCO World Heritage Site.'],
+      ['Gateway of India','Mumbai','Monument',18.9220,72.8347,'An Indo-Saracenic arch overlooking Mumbai Harbour.'],
+      ['Hawa Mahal','Jaipur','Palace',26.9239,75.8267,"Jaipur's celebrated Palace of Winds, completed in 1799."],
+      ['Mysore Palace','Mysuru','Palace',12.3052,76.6552,'The illuminated royal residence of the Wadiyar dynasty.'],
+      ['Victoria Memorial','Kolkata','Museum',22.5448,88.3426,'A marble museum dedicated to Queen Victoria.'],
+      ['Meenakshi Temple','Madurai','Temple',9.9195,78.1193,'A historic temple complex known for its colourful gopurams.'],
+      ['Golden Temple','Amritsar','Temple',31.6200,74.8765,'The spiritual centre of Sikhism, surrounded by the Amrit Sarovar.']
+    ];
+    const colors = { Monument:'#e85d75', Palace:'#f4a261', Museum:'#457b9d', Temple:'#2a9d8f' };
+    const markers = L.layerGroup().addTo(map);
+    places.forEach(([name,city,type,lat,lng,fact]) => {
+      L.circleMarker([lat,lng], { radius:9, color:'#fff', weight:2, fillColor:colors[type], fillOpacity:.94 })
+       .bindTooltip(name).bindPopup(`<div style="min-width:210px"><h3 style="margin:0 0 5px;color:#12355b">${name}</h3><b>${city}</b> · ${type}<p style="line-height:1.45;margin-bottom:0">${fact}</p></div>`).addTo(markers);
+    });
+    L.control.layers({ 'Light map':light, 'Street map':street }, { 'Featured places':markers }, { collapsed:false }).addTo(map);
+    const legend = L.control({ position:'bottomright' });
+    legend.onAdd = () => { const div=L.DomUtil.create('div','legend'); div.innerHTML='<strong>Place type</strong>'+Object.entries(colors).map(([k,v])=>`<div><i style="background:${v}"></i>${k}</div>`).join(''); return div; };
+    legend.addTo(map);
+    map.fitBounds([[7,68],[36,97]]);
+  </script>
+</body>
+</html>
