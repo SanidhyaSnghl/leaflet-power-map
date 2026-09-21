@@ -6,7 +6,7 @@
   <meta name="description" content="An interactive Leaflet map of iconic places across India, created with R Markdown.">
   <title>India: A Journey Through Iconic Places</title>
   <link rel="preconnect" href="https://unpkg.com">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh1zFJbKpBSJi1rUh6MQTFqO5fM=" crossorigin="">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
   <style>
     :root { --navy:#12355b; --ink:#19324a; --cream:#fffaf1; --gold:#f4a261; }
     * { box-sizing: border-box; }
@@ -24,6 +24,45 @@
     .tip { flex:0 0 auto; padding:10px 14px; border-radius:10px; background:#fff1dc; color:#7a4708; font-size:.9rem; }
     footer { padding:0 24px 35px; text-align:center; color:#687b8b; font-size:.9rem; }
     .leaflet-popup-content h3 { font-family:Georgia, serif; }
+    /* Essential Leaflet layout rules are kept inline as a resilient fallback.
+       This prevents a blocked CDN stylesheet from scattering tiles/controls. */
+    .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,
+    .leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,
+    .leaflet-zoom-box,.leaflet-image-layer { position:absolute; left:0; top:0; }
+    .leaflet-container { overflow:hidden; position:relative; outline:0; background:#d9e4e8; -webkit-tap-highlight-color:transparent; }
+    .leaflet-tile { user-select:none; -webkit-user-drag:none; }
+    .leaflet-tile-loaded { visibility:inherit; }
+    .leaflet-zoom-animated { transform-origin:0 0; }
+    .leaflet-map-pane canvas { z-index:100; }
+    .leaflet-map-pane svg { z-index:200; }
+    .leaflet-tile-pane { z-index:200; }
+    .leaflet-overlay-pane { z-index:400; }
+    .leaflet-shadow-pane { z-index:500; }
+    .leaflet-marker-pane { z-index:600; }
+    .leaflet-tooltip-pane { z-index:650; }
+    .leaflet-popup-pane { z-index:700; }
+    .leaflet-top,.leaflet-bottom { position:absolute; z-index:1000; pointer-events:none; }
+    .leaflet-top { top:0; } .leaflet-right { right:0; } .leaflet-bottom { bottom:0; } .leaflet-left { left:0; }
+    .leaflet-control { position:relative; z-index:800; pointer-events:auto; float:left; clear:both; }
+    .leaflet-right .leaflet-control { float:right; }
+    .leaflet-top .leaflet-control { margin-top:10px; }
+    .leaflet-bottom .leaflet-control { margin-bottom:10px; }
+    .leaflet-left .leaflet-control { margin-left:10px; }
+    .leaflet-right .leaflet-control { margin-right:10px; }
+    .leaflet-control-zoom,.leaflet-control-layers { border:2px solid rgba(0,0,0,.18); border-radius:6px; background:#fff; box-shadow:0 1px 5px rgba(0,0,0,.2); }
+    .leaflet-control-zoom a { display:block; width:30px; height:30px; line-height:30px; text-align:center; color:#12355b; text-decoration:none; font:bold 20px Arial; border-bottom:1px solid #ddd; }
+    .leaflet-control-zoom a:last-child { border-bottom:0; }
+    .leaflet-control-layers { padding:7px 9px; color:#244158; font-size:12px; }
+    .leaflet-control-layers label { display:block; }
+    .leaflet-control-attribution { padding:2px 6px; background:rgba(255,255,255,.82); font-size:10px; }
+    .leaflet-control-attribution a { color:#1769aa; }
+    .leaflet-popup { position:absolute; text-align:center; margin-bottom:20px; }
+    .leaflet-popup-content-wrapper { padding:1px; text-align:left; border-radius:12px; background:white; box-shadow:0 3px 14px rgba(0,0,0,.35); }
+    .leaflet-popup-content { margin:14px 18px; line-height:1.4; }
+    .leaflet-popup-tip-container { width:40px; height:20px; position:absolute; left:50%; margin-left:-20px; overflow:hidden; pointer-events:none; }
+    .leaflet-popup-tip { width:17px; height:17px; padding:1px; margin:-10px auto 0; transform:rotate(45deg); background:white; box-shadow:3px 3px 10px rgba(0,0,0,.25); }
+    .leaflet-popup-close-button { position:absolute; top:0; right:0; z-index:2; padding:5px 7px 0 0; color:#757575; text-decoration:none; font:bold 18px Arial; }
+    .leaflet-tooltip { position:absolute; padding:6px; border:1px solid white; border-radius:4px; background:white; box-shadow:0 1px 4px rgba(0,0,0,.25); color:#222; white-space:nowrap; pointer-events:none; }
     .legend { padding:9px 11px; border-radius:10px; background:rgba(255,255,255,.95); box-shadow:0 2px 12px rgba(0,0,0,.15); line-height:20px; color:#26445c; }
     .legend strong { display:block; margin-bottom:4px; }
     .legend i { width:12px; height:12px; float:left; margin:4px 7px 0 0; border-radius:50%; border:1px solid white; box-shadow:0 0 0 1px rgba(0,0,0,.12); }
@@ -49,8 +88,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const map = L.map('map', { scrollWheelZoom: false }).setView([22.8, 79.3], 5);
-    const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(map);
-    const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' });
+    const light = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(map);
+    const street = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors, Tiles style by HOT' });
     const places = [
       ['Taj Mahal','Agra','Monument',27.1751,78.0421,'A white-marble mausoleum and UNESCO World Heritage Site.'],
       ['Gateway of India','Mumbai','Monument',18.9220,72.8347,'An Indo-Saracenic arch overlooking Mumbai Harbour.'],
@@ -66,11 +105,12 @@
       L.circleMarker([lat,lng], { radius:9, color:'#fff', weight:2, fillColor:colors[type], fillOpacity:.94 })
        .bindTooltip(name).bindPopup(`<div style="min-width:210px"><h3 style="margin:0 0 5px;color:#12355b">${name}</h3><b>${city}</b> · ${type}<p style="line-height:1.45;margin-bottom:0">${fact}</p></div>`).addTo(markers);
     });
-    L.control.layers({ 'Light map':light, 'Street map':street }, { 'Featured places':markers }, { collapsed:false }).addTo(map);
+    L.control.layers({ 'Esri street map':light, 'Humanitarian map':street }, { 'Featured places':markers }, { collapsed:false }).addTo(map);
     const legend = L.control({ position:'bottomright' });
     legend.onAdd = () => { const div=L.DomUtil.create('div','legend'); div.innerHTML='<strong>Place type</strong>'+Object.entries(colors).map(([k,v])=>`<div><i style="background:${v}"></i>${k}</div>`).join(''); return div; };
     legend.addTo(map);
     map.fitBounds([[7,68],[36,97]]);
+    requestAnimationFrame(() => map.invalidateSize());
   </script>
 </body>
 </html>

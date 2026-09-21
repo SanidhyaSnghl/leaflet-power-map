@@ -42,8 +42,15 @@ pal <- colorFactor(
 )
 
 leaflet(places) |>
-  addProviderTiles(providers$CartoDB.Positron, group = "Light") |>
-  addProviderTiles(providers$OpenStreetMap.Mapnik, group = "Street") |>
+  addTiles(
+    urlTemplate = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution = "Tiles &copy; Esri", group = "Esri street map"
+  ) |>
+  addTiles(
+    urlTemplate = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    attribution = "&copy; OpenStreetMap contributors, Tiles style by HOT",
+    group = "Humanitarian map"
+  ) |>
   addCircleMarkers(
     lng = ~lng, lat = ~lat,
     radius = 8, color = "white", weight = 2,
@@ -59,7 +66,7 @@ leaflet(places) |>
   addLegend("bottomright", pal = pal, values = ~type,
             title = "Place type", opacity = 0.9) |>
   addLayersControl(
-    baseGroups = c("Light", "Street"),
+    baseGroups = c("Esri street map", "Humanitarian map"),
     options = layersControlOptions(collapsed = FALSE)
   ) |>
   fitBounds(lng1 = 68, lat1 = 7, lng2 = 97, lat2 = 36)
